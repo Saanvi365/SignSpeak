@@ -10,6 +10,7 @@ generalize across the frame.
 
 import csv
 import os
+from collections import Counter
 
 import joblib
 import numpy as np
@@ -69,11 +70,34 @@ def load_dataset(csv_path):
 
 
 def train(csv_path, model_path, test_fraction=0.2, random_state=42):
-    """Train the classifier and save it. Returns the classification report."""
+    """Train the classifier and save it. Returns the classification report.
+
+    Letters with fewer than 2 samples can't be split into train/test, so
+    they're dropped up front with a warning (collect a few more samples of
+    them and retrain to add them back).
+    """
     X, y = load_dataset(csv_path)
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=test_fraction, random_state=random_state, stratify=y
-    )
+
+    counts = Counter(y)
+    thin = sorted(letter for letter, n in counts.items() if n < 2)
+    if thin:
+        print(
+            f"dropping letters with fewer than 2 samples: {', '.join(thin)} "
+            "(collect more samples of them and retrain)"
+        )
+        keep = np.array([letter not in thin for letter in y])
+        X, y = X[keep], y[keep]
+
+    try:
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, test_size=test_fraction, random_state=random_state, stratify=y
+        )
+    except ValueError:
+        # too few total samples for a stratified split - split plainly instead
+        print("not enough samples for a stratified split - splitting without stratify")
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, test_size=test_fraction, random_state=random_state
+        )
 
     clf = MLPClassifier(
         hidden_layer_sizes=(128, 64),
