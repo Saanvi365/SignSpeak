@@ -40,15 +40,29 @@ def normalize_landmarks(landmarks):
 
 
 def load_dataset(csv_path):
-    """Load labeled samples saved by collect_data.py. Returns (X, y)."""
+    """Load labeled samples saved by collect_data.py. Returns (X, y).
+
+    The CSV starts with a header row, and a stray keypress during collection
+    can leave a malformed line behind - bad rows are skipped and counted,
+    never fatal.
+    """
     X, y = [], []
+    skipped = 0
     with open(csv_path, newline="") as f:
         for row in csv.reader(f):
             if len(row) != FEATURE_DIM + 1:
-                continue  # skip blank or malformed lines
+                if row:  # truly blank lines are ignored silently
+                    skipped += 1
+                continue
             *features, label = row
-            X.append([float(v) for v in features])
+            try:
+                X.append([float(v) for v in features])
+            except ValueError:
+                skipped += 1  # header row or a malformed sample
+                continue
             y.append(label)
+    if skipped:
+        print(f"skipped {skipped} malformed rows")
     if not X:
         raise ValueError(f"no samples found in {csv_path} - run collect_data.py first")
     return np.asarray(X), np.asarray(y)
