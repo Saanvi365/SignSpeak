@@ -29,6 +29,11 @@ python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\act
 pip install -r requirements.txt
 ```
 
+Requires mediapipe >= 0.10.14 (works on mediapipe 1.x, which removed the old
+`mp.solutions` API - this repo uses the newer Tasks HandLandmarker API).
+On the first run the hand-tracking model (`models/hand_landmarker.task`,
+~8 MB) downloads itself automatically; you just need to be online once.
+
 ### 1. Collect training samples (a few minutes)
 
 The demo ships without a pretrained model - you teach it your own hand, which
