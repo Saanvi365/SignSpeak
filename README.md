@@ -23,7 +23,7 @@ clean, runnable Python project.
 ## Quick start
 
 ```bash
-git clone https://github.com/Saanvi365/SignSpeak.git
+git clone https://github.com/saanvigunu/SignSpeak.git
 cd SignSpeak
 python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
